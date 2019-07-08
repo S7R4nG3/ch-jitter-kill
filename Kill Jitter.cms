@@ -1,0 +1,60 @@
+// CMS Script File
+//
+//     Game Title:
+//     Written By:
+//           Date:
+//
+script
+ //The script is executed continuously, think of it like a loop.
+ //For this reason, we have to use a "clocktick" command such
+ //that we only store axis value when your CH product updates.
+ If (clocktick) then
+ //collect last 10 values from the 3rd axis of joystick 1.
+ a10 = a9;
+ a9 = a8;
+ a8 = a7;
+ a7 = a6;
+ a6 = a5;
+ a5 = a4;
+ a4 = a3;
+ a3 = a2;
+ a2 = a1;
+ a1 = js1.a3;
+ EndIf
+ //a30 = calculate average from samples
+ a30 = (a1+a2+a3+a4+a5+a6+a7+a8+a9+a10)/10;
+
+ //Using average as output will stabilize the jitter,
+ //however the more samples, the larger input lag.
+ //Following if-statement remove input lag by
+ //switching to the joystick axis during fast movements.
+ If ([(a30 - a1) > 3] OR [(a1 - a30) > 3]) then
+ //Output is raw (jittery) data when the change is
+ //larger than 3. You can play around with it.
+ cms.a1 = a1;
+ Else
+ //Use average as output if throttle is more or less still.
+ //However there will still be a jitter of +/- 1 because
+ //CMS doesn’t deal with Reals, only positive integers.
+ //Following script fixes this.
+
+ //Checks if the average is larger/smaller than the previous
+ //value on the axis. If it is, we add/subtract 1 from it.
+ //The greater the value you change, the larger "lag" between
+ //the input and output will be. +/-1 is the sweet spot and
+ //with averaging we are guaranteed that.
+ If ([a30 > cms.a1]) then
+ cms.a1 = a30 - 1;
+ EndIf
+ If ([a30 < cms.a1]) then
+ cms.a1 = a30 + 1;
+ EndIf
+ //Above script truncates max and min, this fixes it.
+ If ([a30 == 255]) then
+ cms.a1 = js1.a3;
+ EndIf
+ If ([a30 == 0]) then
+ cms.a1 = js1.a3;
+ EndIf
+ EndIf
+endScript
